@@ -40,7 +40,3 @@ class DataBaseWork:
         conn.close()
         return balance
 
-
-db = DataBaseWork()
-db.add_or_spend_money(1, -600, True)
-print(db.get_balance(1))
