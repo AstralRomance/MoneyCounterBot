@@ -18,18 +18,29 @@ class DataBaseWork:
 
     def add_or_spend_money(self, user_id, money, money_state):
         conn = sqlite3.connect(self.path_to_database)
-        if money_state:
-            conn.cursor().execute("""UPDATE moneys SET current_balance = current_balance + ? WHERE user_id = ?
-                                """, (money, user_id))
+        if conn.cursor().execute("""SELECT * FROM moneys WHERE user_id = ?""", (user_id,)).fetchall():
+            if money_state:
+                conn.cursor().execute("""UPDATE moneys SET current_balance = current_balance + ? WHERE user_id = ?
+                                                    """, (money, user_id))
+            else:
+                conn.cursor().execute("""UPDATE moneys SET current_balance = current_balance - ? WHERE user_id = ?
+                                                                    """, (money, user_id))
         else:
-            conn.cursor().execute("""UPDATE moneys SET current_balance = current_balance - ? WHERE user_id = ?
-                                            """, (money, user_id))
+            if money_state:
+                conn.cursor().execute("""INSERT INTO moneys VALUES(?, ?)""", (user_id, money))
+            else:
+                conn.cursor().execute("""INSERT INTO moneys VALUES(?, ?)""", (user_id, -money))
         conn.commit()
         conn.close()
 
     def get_balance(self, user_id):
         conn = sqlite3.connect(self.path_to_database)
-        balance = conn.cursor().execute("""SELECT current_balance WHERE user_id = ?
+        balance = conn.cursor().execute("""SELECT current_balance FROM moneys WHERE user_id = ?
                               """, (user_id,)).fetchall()
         conn.close()
         return balance
+
+
+db = DataBaseWork()
+db.add_or_spend_money(1, -600, True)
+print(db.get_balance(1))
